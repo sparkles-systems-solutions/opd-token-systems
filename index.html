@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ninewells OPD Token - AI Voice Final</title>
+    <style>
+        :root {
+            --primary: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --glass: rgba(255, 255, 255, 0.95);
+        }
+
+        @page { size: auto; margin: 0mm; }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; overflow: hidden;
+            background-color: #222; background-size: cover; background-position: center;
+        }
+
+        #blurOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            backdrop-filter: blur(12px); background: rgba(0, 0, 0, 0.4); z-index: 1; display: none;
+        }
+
+        .settings-trigger {
+            position: fixed; top: 20px; right: 20px; z-index: 100;
+            cursor: pointer; background: rgba(255,255,255,0.2);
+            padding: 10px; border-radius: 50%; color: white; font-size: 20px;
+        }
+
+        .token-card {
+            position: relative; z-index: 10;
+            background: var(--glass); border-radius: 30px;
+            width: 480px; padding: 40px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+            text-align: center; border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .hospital-name { font-size: 1.1rem; color: #444; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
+        .title { font-size: 2.2rem; font-weight: 800; color: #111; margin: 10px 0; border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 10px; }
+        .number { font-size: 160px; font-weight: 900; margin: 20px 0; color: #000; line-height: 0.8; outline: none; }
+        .time-stamp { text-align: center; font-size: 1.5rem; color: #222; margin-bottom: 20px; font-weight: 700; }
+
+        .btn-print { padding: 18px 80px; font-size: 1.8rem; font-weight: bold; border: none; border-radius: 15px; cursor: pointer; color: white; background-color: var(--primary); transition: 0.3s; margin-bottom: 10px; width: 100%; }
+        
+        .voice-status { font-size: 1rem; font-weight: bold; color: #d9534f; margin-top: 10px; min-height: 24px; padding: 5px; border-radius: 5px; }
+        .voice-btn { background: #444; border: none; padding: 15px 30px; border-radius: 30px; color: white; cursor: pointer; font-size: 1.1rem; font-weight: bold; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .voice-btn.active { background: #d9534f; animation: pulse 1.5s infinite; }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+
+        .no-print { user-select: none; }
+
+        #settingsPanel {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; padding: 30px; border-radius: 20px; z-index: 200;
+            display: none; width: 400px; box-shadow: 0 0 100px rgba(0,0,0,0.5);
+        }
+
+        .input-box { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; }
+        .save-btn { background: #222; color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+
+        @media print {
+            .no-print, #blurOverlay, .settings-trigger, #settingsPanel, .hospital-name, .voice-btn, .voice-status, .voice-info { display: none !important; }
+            body { background: white !important; }
+            .token-card { background: white !important; box-shadow: none !important; border: none !important; width: 100% !important; padding: 0 !important; }
+            .title { font-size: 22pt !important; border-bottom: 2pt solid #000 !important; }
+            .number { font-size: 120pt !important; margin: 10mm 0 !important; }
+            .time-stamp { font-size: 18pt !important; border-top: 2pt solid #000 !important; padding-top: 5mm !important; }
+        }
+    </style>
+</head>
+<body onload="initApp()">
+
+<div class="settings-trigger no-print" onclick="openSettings()">⚙️</div>
+<div id="blurOverlay" class="no-print"></div>
+
+<div id="settingsPanel" class="no-print">
+    <div id="loginStep">
+        <h3>Admin Access</h3>
+        <input type="password" id="adminPass" class="input-box" placeholder="Enter Password">
+        <button class="save-btn" onclick="checkPass()">Login</button>
+    </div>
+    <div id="configStep" style="display:none;">
+        <button class="save-btn" style="background:#28a745; margin-bottom: 10px;" onclick="exportCSV()">Download CSV Report</button>
+        <button class="save-btn" style="background:#dc3545;" onclick="resetCounter()">Reset Counter to 01</button>
+        <button class="save-btn" style="background:#666; margin-top: 20px;" onclick="closeSettings()">Close</button>
+    </div>
+</div>
+
+<div class="token-card">
+    <div class="hospital-name">Ninewells Hospital</div>
+    <div class="title">OPD Token Number</div>
+    <div class="number" id="tokenVal" contenteditable="true" onblur="manualUpdate()">01</div>
+    <div class="time-stamp" id="currTime">--</div>
+    
+    <button class="btn-print no-print" onclick="issueToken()">🖨️ Print Token</button>
+    
+    <div class="no-print" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 20px;">
+        <button id="voiceBtn" class="voice-btn" onclick="toggleVoice()">🎤 Activate Voice AI</button>
+        <div id="voiceStatus" class="voice-status">Voice: Deactivated</div>
+        <div class="voice-info" style="font-size: 0.75rem; color: #777; margin-top: 8px;">
+            Commands: <b>"Print"</b> | <b>"Start from [Number]"</b> | <b>"Reset"</b>
+        </div>
+    </div>
+</div>
+
+<script>
+    let count = 1;
+    let recognition;
+    let isListening = false;
+    let awaitingResetConfirm = false;
+
+    function initApp() {
+        const savedCount = localStorage.getItem('tokenCount');
+        if (savedCount) {
+            count = parseInt(savedCount);
+            updateUI();
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+        
+        // Browser eka full screen kireema user interact unama
+        document.body.onclick = () => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+        };
+        
+        setupAI();
+    }
+
+    function updateTime() {
+        const now = new Date();
+        document.getElementById('currTime').innerText = now.toLocaleString('en-US', { 
+            year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' 
+        });
+    }
+
+    function setupAI() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            document.getElementById('voiceStatus').innerText = "Browser not supported.";
+            return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event) => {
+            const result = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
+            document.getElementById('voiceStatus').innerText = "Heard: " + result;
+
+            if (awaitingResetConfirm) {
+                if (result.match(/yes|ok|confirm/)) { executeReset(); }
+                else if (result.match(/no|cancel/)) { 
+                    awaitingResetConfirm = false; 
+                    speak("Reset cancelled."); 
+                    document.getElementById('voiceStatus').innerText = "Ready";
+                }
+                return;
+            }
+
+            if (result.includes("print")) {
+                issueToken();
+            } else if (result.includes("start from")) {
+                const num = result.match(/\d+/);
+                if (num) {
+                    count = parseInt(num[0]);
+                    saveAndRefresh();
+                    speak("Started from " + count);
+                }
+            } else if (result.includes("reset")) {
+                awaitingResetConfirm = true;
+                speak("Are you sure you want to reset?");
+                document.getElementById('voiceStatus').innerText = "Confirm with 'Yes' or 'No'";
+            }
+        };
+
+        recognition.onend = () => { if (isListening) recognition.start(); };
+        recognition.onerror = (e) => { console.error(e); };
+    }
+
+    function toggleVoice() {
+        if (!isListening) {
+            recognition.start();
+            isListening = true;
+            document.getElementById('voiceBtn').innerText = "🛑 Stop Voice AI";
+            document.getElementById('voiceBtn').classList.add('active');
+            document.getElementById('voiceStatus').innerText = "Listening...";
+            speak("Voice control activated.");
+        } else {
+            recognition.stop();
+            isListening = false;
+            document.getElementById('voiceBtn').innerText = "🎤 Activate Voice AI";
+            document.getElementById('voiceBtn').classList.remove('active');
+            document.getElementById('voiceStatus').innerText = "Voice: Deactivated";
+        }
+    }
+
+    function speak(text) {
+        const msg = new SpeechSynthesisUtterance(text);
+        window.speechSynthesis.speak(msg);
+    }
+
+    function issueToken() {
+        window.print(); // Silent printing filter eken copy 1
+        setTimeout(() => { 
+            window.print(); // Copy 2
+            count++;
+            saveAndRefresh();
+        }, 1200); 
+    }
+
+    function saveAndRefresh() {
+        localStorage.setItem('tokenCount', count);
+        updateUI();
+    }
+
+    function executeReset() {
+        count = 1;
+        saveAndRefresh();
+        awaitingResetConfirm = false;
+        speak("Counter reset to one.");
+        document.getElementById('voiceStatus').innerText = "Reset Done";
+    }
+
+    function updateUI() { document.getElementById('tokenVal').innerText = count.toString().padStart(2, '0'); }
+    function manualUpdate() { let v = parseInt(document.getElementById('tokenVal').innerText); if(!isNaN(v)) { count = v; localStorage.setItem('tokenCount', v); } }
+    function openSettings() { document.getElementById('settingsPanel').style.display = 'block'; document.getElementById('blurOverlay').style.display = 'block'; }
+    function closeSettings() { document.getElementById('settingsPanel').style.display = 'none'; document.getElementById('blurOverlay').style.display = 'none'; }
+    function checkPass() { if(document.getElementById('adminPass').value === "1234") { document.getElementById('loginStep').style.display = 'none'; document.getElementById('configStep').style.display = 'block'; } }
+    function resetCounter() { if(confirm("Reset?")) executeReset(); }
+</script>
+</body>
+</html>
