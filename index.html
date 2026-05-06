@@ -2,80 +2,53 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Ninewells OPD Token System - Stable Voice</title>
+    <title>Ninewells OPD Token - Voice Fix</title>
     <style>
-        :root {
-            --primary: #007bff;
-            --success: #28a745;
-            --danger: #dc3545;
-            --glass: rgba(255, 255, 255, 0.85);
-        }
-
+        :root { --primary: #007bff; --danger: #dc3545; --glass: rgba(255, 255, 255, 0.9); }
         @page { size: auto; margin: 0mm; }
-
         body {
-            margin: 0; padding: 0;
-            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif;
             display: flex; justify-content: center; align-items: center;
-            height: 100vh; overflow: hidden;
-            background-color: #333; background-size: cover; background-position: center;
+            height: 100vh; overflow: hidden; background-color: #333;
+            background-size: cover; background-position: center;
         }
-
         #blurOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             backdrop-filter: blur(12px); background: rgba(0, 0, 0, 0.3); z-index: 1; display: none;
         }
-
-        .settings-trigger {
-            position: fixed; top: 20px; right: 20px; z-index: 100;
-            cursor: pointer; background: rgba(255,255,255,0.2);
-            padding: 10px; border-radius: 50%; color: white; font-size: 20px;
-        }
-
         .token-card {
-            position: relative; z-index: 10;
-            background: var(--glass); border-radius: 30px;
-            width: 480px; padding: 40px;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
-            text-align: center; border: 1px solid rgba(255, 255, 255, 0.4);
+            position: relative; z-index: 10; background: var(--glass);
+            border-radius: 30px; width: 450px; padding: 40px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4); text-align: center;
         }
+        .hospital-name { font-size: 1rem; font-weight: 700; color: #444; text-transform: uppercase; }
+        .title { font-size: 2rem; font-weight: 800; color: #111; margin: 10px 0; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        .number { font-size: 150px; font-weight: 900; margin: 15px 0; color: #000; outline: none; }
+        .time-stamp { font-size: 1.3rem; color: #222; margin-bottom: 30px; font-weight: 700; }
+        
+        .btn-print { padding: 18px; font-size: 1.8rem; font-weight: bold; border: none; border-radius: 15px; cursor: pointer; color: white; background: var(--primary); width: 100%; margin-bottom: 10px; }
+        .btn-reset { padding: 10px; font-size: 1rem; font-weight: bold; border: 1px solid #ccc; border-radius: 10px; cursor: pointer; color: #666; background: white; width: 100%; transition: 0.3s; }
+        .btn-reset:hover { background: var(--danger); color: white; border-color: var(--danger); }
 
-        .hospital-name { font-size: 1.1rem; color: #444; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
-        .title { font-size: 2.2rem; font-weight: 800; color: #111; margin: 10px 0; border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 10px; }
-        .number { font-size: 160px; font-weight: 900; margin: 20px 0; color: #000; line-height: 0.8; outline: none; }
-        .time-stamp { text-align: center; font-size: 1.5rem; color: #222; margin-bottom: 35px; font-weight: 700; }
+        .voice-box { margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.05); border-radius: 15px; }
+        .v-btn { background: #444; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold; }
+        .v-btn.active { background: #ff4757; animation: pulse 1.5s infinite; }
+        .v-status { font-size: 11px; margin-top: 8px; color: #555; font-weight: bold; text-transform: uppercase; }
+        
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
-        .btn-print { padding: 18px 80px; font-size: 1.8rem; font-weight: bold; border: none; border-radius: 15px; cursor: pointer; color: white; background-color: var(--primary); transition: 0.3s; width: 100%; }
-
-        .reset-trigger {
-            position: fixed; bottom: 20px; right: 20px; z-index: 100;
-            cursor: pointer; background: rgba(255, 255, 255, 0.1);
-            padding: 8px 15px; border-radius: 8px; color: #bbb; font-size: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.2); transition: 0.3s;
-        }
-        .reset-trigger:hover { background: var(--danger); color: white; }
-
-        .voice-control { margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(0,0,0,0.1); }
-        .v-btn { background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
-        .v-btn.active { background: var(--danger); }
-        .v-status { font-size: 12px; color: #555; margin-top: 5px; font-weight: bold; }
-
+        .settings-trigger { position: fixed; top: 20px; right: 20px; z-index: 100; cursor: pointer; font-size: 24px; color: white; opacity: 0.5; }
         #settingsPanel {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: white; padding: 30px; border-radius: 20px; z-index: 200;
-            display: none; width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            display: none; width: 350px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
-        .report-section { border-top: 1px solid #eee; margin-top: 20px; padding-top: 15px; }
-        .input-box { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .save-btn { background: #333; color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .input-box { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
 
         @media print {
-            .no-print, #blurOverlay, .settings-trigger, .btn-print, .reset-trigger, #settingsPanel, .hospital-name, .voice-control { display: none !important; }
-            body { background: white !important; display: flex !important; justify-content: center !important; align-items: flex-start !important; }
-            .token-card { background: white !important; box-shadow: none !important; border: none !important; width: 100% !important; padding: 5mm !important; margin: 0 !important; }
-            .title { font-size: 20pt !important; border-bottom: 2.5pt solid #000 !important; padding-top: 5mm !important; }
-            .number { font-size: 110pt !important; margin: 8mm 0 !important; line-height: 1 !important; font-weight: 900 !important; }
-            .time-stamp { font-size: 16pt !important; border-top: 2.5pt solid #000 !important; padding-top: 5mm !important; color: #000 !important; font-weight: 800 !important; }
+            .no-print { display: none !important; }
+            body { background: white !important; }
+            .token-card { box-shadow: none !important; border: none !important; width: 100% !important; padding: 0 !important; }
         }
     </style>
 </head>
@@ -86,46 +59,36 @@
 
 <div id="settingsPanel" class="no-print">
     <div id="loginStep">
-        <h3>Admin Login</h3>
+        <h3>Admin Access</h3>
         <input type="password" id="adminPass" class="input-box" placeholder="Password">
-        <button class="save-btn" onclick="checkPass()">Login</button>
-        <button class="save-btn" style="background:#666; margin-top:5px;" onclick="closeSettings()">Close</button>
+        <button class="btn-print" style="font-size:1rem; padding:10px;" onclick="checkPass()">Login</button>
+        <button class="btn-reset" onclick="closeSettings()">Cancel</button>
     </div>
     <div id="configStep" style="display:none;">
-        <h3>Configuration</h3>
-        <div class="report-section"><strong>Monthly Total: </strong> <span id="monthlyTotal">0</span></div>
-        <div class="report-section">
-            <strong>Download CSV Report</strong>
-            <input type="date" id="startDate" class="input-box">
-            <input type="date" id="endDate" class="input-box">
-            <button class="save-btn" style="background:#28a745;" onclick="exportCSV()">Download CSV</button>
-        </div>
-        <div class="report-section">
-            <label>Change Background Image:</label>
-            <input type="file" id="bgInput" class="input-box" accept="image/*" onchange="uploadBg(this)">
-        </div>
-        <button class="save-btn" style="margin-top:20px;" onclick="closeSettings()">Close</button>
+        <h3>Reports & Background</h3>
+        <button class="btn-reset" style="margin-bottom:10px;" onclick="exportCSV()">Download Today's CSV</button>
+        <input type="file" id="bgInput" class="input-box" accept="image/*" onchange="uploadBg(this)">
+        <button class="btn-reset" onclick="closeSettings()">Close</button>
     </div>
 </div>
-
-<div class="reset-trigger no-print" onclick="resetCounter()">Reset Token Count</div>
 
 <div class="token-card">
     <div class="hospital-name">Ninewells Hospital</div>
     <div class="title">OPD Token Number</div>
     <div class="number" id="tokenVal" contenteditable="true" onblur="manualUpdate()">01</div>
     <div class="time-stamp" id="currTime">--</div>
-    <button class="btn-print no-print" onclick="issueToken()">Print</button>
+    
+    <button class="btn-print no-print" onclick="issueToken()">PRINT TOKEN</button>
+    <button class="btn-reset no-print" onclick="resetCounter()">RESET TO 01</button>
 
-    <div class="voice-control no-print">
-        <button class="v-btn" id="vBtn" onclick="toggleVoice()">🎤 Start Voice AI</button>
-        <div class="v-status" id="vStatus">Voice: OFF</div>
+    <div class="voice-box no-print">
+        <button class="v-btn" id="vBtn" onclick="toggleVoice()">🎤 ACTIVATE VOICE AI</button>
+        <div class="v-status" id="vStatus">Status: Microphone Off</div>
     </div>
 </div>
 
 <script>
     let count = 1;
-    const correctPass = "1234";
     let recognition;
     let isListening = false;
 
@@ -142,146 +105,105 @@
         }
         updateTime();
         setInterval(updateTime, 1000);
-        setupVoice();
-    }
-
-    // Voice Engine Setup
-    function setupVoice() {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            document.getElementById('vStatus').innerText = "Voice not supported in this browser.";
-            return;
+        
+        // Browser eka speech support karanawada balanna
+        window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!window.SpeechRecognition) {
+            document.getElementById('vStatus').innerText = "Browser not supported!";
+            document.getElementById('vBtn').disabled = true;
         }
-
-        recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.lang = 'en-US';
-        recognition.interimResults = false;
-
-        recognition.onresult = (event) => {
-            const result = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
-            document.getElementById('vStatus').innerText = "Heard: " + result;
-
-            if (result.includes("print")) {
-                issueToken();
-            } else if (result.includes("reset")) {
-                resetCounter();
-            }
-        };
-
-        recognition.onerror = (e) => {
-            console.error("Voice Error: ", e.error);
-            if (e.error === 'not-allowed') {
-                document.getElementById('vStatus').innerText = "Check Mic Permissions!";
-            }
-        };
-
-        recognition.onend = () => { if (isListening) recognition.start(); };
     }
 
     function toggleVoice() {
         if (!isListening) {
-            try {
-                recognition.start();
-                isListening = true;
-                document.getElementById('vBtn').innerText = "🛑 Stop Voice AI";
-                document.getElementById('vBtn').classList.add('active');
-                document.getElementById('vStatus').innerText = "Listening...";
-            } catch (e) { console.error(e); }
+            startListening();
         } else {
-            recognition.stop();
-            isListening = false;
-            document.getElementById('vBtn').innerText = "🎤 Start Voice AI";
-            document.getElementById('vBtn').classList.remove('active');
-            document.getElementById('vStatus').innerText = "Voice: OFF";
+            stopListening();
         }
+    }
+
+    function startListening() {
+        recognition = new window.SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = () => {
+            isListening = true;
+            document.getElementById('vBtn').innerText = "🛑 LISTENING... (Say 'Print')";
+            document.getElementById('vBtn').classList.add('active');
+            document.getElementById('vStatus').innerText = "Status: Listening Active";
+        };
+
+        recognition.onresult = (event) => {
+            const command = event.results[event.results.length - 1][0].transcript.toLowerCase();
+            document.getElementById('vStatus').innerText = "Last Heard: " + command;
+            
+            if (command.includes("print") || command.includes("token")) {
+                issueToken();
+            }
+        };
+
+        recognition.onerror = (err) => {
+            console.error(err);
+            document.getElementById('vStatus').innerText = "Error: " + err.error;
+            if(err.error === 'network') alert("Check Internet for Voice AI!");
+        };
+
+        recognition.onend = () => {
+            if (isListening) recognition.start(); // Auto restart if it stops
+        };
+
+        recognition.start();
+    }
+
+    function stopListening() {
+        isListening = false;
+        if(recognition) recognition.stop();
+        document.getElementById('vBtn').innerText = "🎤 ACTIVATE VOICE AI";
+        document.getElementById('vBtn').classList.remove('active');
+        document.getElementById('vStatus').innerText = "Status: Microphone Off";
     }
 
     function updateTime() {
         const now = new Date();
         document.getElementById('currTime').innerText = now.toLocaleString('en-US', { 
-            year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' 
+            hour: '2-digit', minute: '2-digit', second: '2-digit', day: 'numeric', month: 'short'
         });
     }
 
     function issueToken() {
-        let currentTokenNum = document.getElementById('tokenVal').innerText;
-        saveLog(currentTokenNum);
         window.print();
-        setTimeout(() => { 
-            window.print(); 
+        // Database log save
+        let logs = JSON.parse(localStorage.getItem('tokenLogs') || "[]");
+        logs.push({ token: count, time: new Date().toISOString() });
+        localStorage.setItem('tokenLogs', JSON.stringify(logs));
+
+        setTimeout(() => {
             count++;
             localStorage.setItem('tokenCount', count);
             document.getElementById('tokenVal').innerText = count.toString().padStart(2, '0');
-        }, 1200); 
-    }
-
-    function saveLog(tokenNum) {
-        let logs = JSON.parse(localStorage.getItem('tokenLogs') || "[]");
-        logs.push({ token: tokenNum, timestamp: new Date().toISOString() });
-        localStorage.setItem('tokenLogs', JSON.stringify(logs));
-    }
-
-    function manualUpdate() {
-        let val = parseInt(document.getElementById('tokenVal').innerText);
-        if(!isNaN(val)) {
-            count = val;
-            localStorage.setItem('tokenCount', count);
-            document.getElementById('tokenVal').innerText = count.toString().padStart(2, '0');
-        }
-    }
-
-    function openSettings() {
-        document.getElementById('settingsPanel').style.display = 'block';
-        document.getElementById('blurOverlay').style.display = 'block';
-    }
-
-    function checkPass() {
-        if(document.getElementById('adminPass').value === correctPass) {
-            document.getElementById('loginStep').style.display = 'none';
-            document.getElementById('configStep').style.display = 'block';
-            updateMonthlyCount();
-        } else { alert("Wrong Password!"); }
-    }
-
-    function updateMonthlyCount() {
-        let logs = JSON.parse(localStorage.getItem('tokenLogs') || "[]");
-        let m = new Date().getMonth(), y = new Date().getFullYear();
-        let mCount = logs.filter(l => {
-            let d = new Date(l.timestamp);
-            return d.getMonth() === m && d.getFullYear() === y;
-        }).length;
-        document.getElementById('monthlyTotal').innerText = mCount;
+        }, 1000);
     }
 
     function resetCounter() {
-        if (confirm("Are you sure you want to reset the token count to 01?")) {
+        if(confirm("Reset Token to 01?")) {
             count = 1;
             localStorage.setItem('tokenCount', 1);
             document.getElementById('tokenVal').innerText = "01";
         }
     }
 
-    function exportCSV() {
-        let start = document.getElementById('startDate').value;
-        let end = document.getElementById('endDate').value;
-        if(!start || !end) return;
-        let logs = JSON.parse(localStorage.getItem('tokenLogs') || "[]");
-        let filtered = logs.filter(l => {
-            let d = l.timestamp.split('T')[0];
-            return d >= start && d <= end;
-        });
-        let csv = "Token Number,Date,Time\n";
-        filtered.forEach(l => {
-            let d = new Date(l.timestamp);
-            csv += `${l.token},${d.toLocaleDateString()},${d.toLocaleTimeString()}\n`;
-        });
-        let blob = new Blob([csv], { type: 'text/csv' });
-        let url = window.URL.createObjectURL(blob);
-        let a = document.createElement('a');
-        a.href = url; a.download = `Report.csv`; a.click();
+    function manualUpdate() {
+        let val = parseInt(document.getElementById('tokenVal').innerText);
+        if(!isNaN(val)) { count = val; localStorage.setItem('tokenCount', count); }
     }
 
+    // Settings logic
+    function openSettings() { document.getElementById('settingsPanel').style.display = 'block'; document.getElementById('blurOverlay').style.display = 'block'; }
+    function closeSettings() { document.getElementById('settingsPanel').style.display = 'none'; if(!localStorage.getItem('bgImage')) document.getElementById('blurOverlay').style.display = 'none'; }
+    function checkPass() { if(document.getElementById('adminPass').value === "1234") { document.getElementById('loginStep').style.display = 'none'; document.getElementById('configStep').style.display = 'block'; } else { alert("Wrong!"); } }
+    
     function uploadBg(input) {
         if (input.files && input.files[0]) {
             let reader = new FileReader();
@@ -289,18 +211,20 @@
                 localStorage.setItem('bgImage', e.target.result);
                 document.body.style.backgroundImage = `url('${e.target.result}')`;
                 document.getElementById('blurOverlay').style.display = 'block';
-            }
+            };
             reader.readAsDataURL(input.files[0]);
         }
     }
 
-    function closeSettings() {
-        document.getElementById('settingsPanel').style.display = 'none';
-        document.getElementById('adminPass').value = "";
-        document.getElementById('loginStep').style.display = 'block';
-        document.getElementById('configStep').style.display = 'none';
-        if(!localStorage.getItem('bgImage')) document.getElementById('blurOverlay').style.display = 'none';
+    function exportCSV() {
+        let logs = JSON.parse(localStorage.getItem('tokenLogs') || "[]");
+        let csv = "Token,Timestamp\n" + logs.map(l => `${l.token},${l.time}`).join("\n");
+        let blob = new Blob([csv], {type: 'text/csv'});
+        let url = URL.createObjectURL(blob);
+        let a = document.createElement('a');
+        a.href = url; a.download = 'TokenReport.csv'; a.click();
     }
 </script>
+
 </body>
 </html>
