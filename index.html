@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Ninewells OPD Token - AI Voice Final</title>
+    <title>Ninewells OPD Token System - Stable Voice</title>
     <style>
         :root {
             --primary: #007bff;
             --success: #28a745;
             --danger: #dc3545;
-            --glass: rgba(255, 255, 255, 0.95);
+            --glass: rgba(255, 255, 255, 0.85);
         }
 
         @page { size: auto; margin: 0mm; }
@@ -18,12 +18,12 @@
             font-family: 'Segoe UI', Arial, sans-serif;
             display: flex; justify-content: center; align-items: center;
             height: 100vh; overflow: hidden;
-            background-color: #222; background-size: cover; background-position: center;
+            background-color: #333; background-size: cover; background-position: center;
         }
 
         #blurOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            backdrop-filter: blur(12px); background: rgba(0, 0, 0, 0.4); z-index: 1; display: none;
+            backdrop-filter: blur(12px); background: rgba(0, 0, 0, 0.3); z-index: 1; display: none;
         }
 
         .settings-trigger {
@@ -36,41 +36,46 @@
             position: relative; z-index: 10;
             background: var(--glass); border-radius: 30px;
             width: 480px; padding: 40px;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
             text-align: center; border: 1px solid rgba(255, 255, 255, 0.4);
         }
 
         .hospital-name { font-size: 1.1rem; color: #444; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
         .title { font-size: 2.2rem; font-weight: 800; color: #111; margin: 10px 0; border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 10px; }
         .number { font-size: 160px; font-weight: 900; margin: 20px 0; color: #000; line-height: 0.8; outline: none; }
-        .time-stamp { text-align: center; font-size: 1.5rem; color: #222; margin-bottom: 20px; font-weight: 700; }
+        .time-stamp { text-align: center; font-size: 1.5rem; color: #222; margin-bottom: 35px; font-weight: 700; }
 
-        .btn-print { padding: 18px 80px; font-size: 1.8rem; font-weight: bold; border: none; border-radius: 15px; cursor: pointer; color: white; background-color: var(--primary); transition: 0.3s; margin-bottom: 10px; width: 100%; }
-        
-        .voice-status { font-size: 1rem; font-weight: bold; color: #d9534f; margin-top: 10px; min-height: 24px; padding: 5px; border-radius: 5px; }
-        .voice-btn { background: #444; border: none; padding: 15px 30px; border-radius: 30px; color: white; cursor: pointer; font-size: 1.1rem; font-weight: bold; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .voice-btn.active { background: #d9534f; animation: pulse 1.5s infinite; }
+        .btn-print { padding: 18px 80px; font-size: 1.8rem; font-weight: bold; border: none; border-radius: 15px; cursor: pointer; color: white; background-color: var(--primary); transition: 0.3s; width: 100%; }
 
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+        .reset-trigger {
+            position: fixed; bottom: 20px; right: 20px; z-index: 100;
+            cursor: pointer; background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px; border-radius: 8px; color: #bbb; font-size: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2); transition: 0.3s;
+        }
+        .reset-trigger:hover { background: var(--danger); color: white; }
 
-        .no-print { user-select: none; }
+        .voice-control { margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(0,0,0,0.1); }
+        .v-btn { background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
+        .v-btn.active { background: var(--danger); }
+        .v-status { font-size: 12px; color: #555; margin-top: 5px; font-weight: bold; }
 
         #settingsPanel {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: white; padding: 30px; border-radius: 20px; z-index: 200;
-            display: none; width: 400px; box-shadow: 0 0 100px rgba(0,0,0,0.5);
+            display: none; width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
-
-        .input-box { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; }
-        .save-btn { background: #222; color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .report-section { border-top: 1px solid #eee; margin-top: 20px; padding-top: 15px; }
+        .input-box { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .save-btn { background: #333; color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
         @media print {
-            .no-print, #blurOverlay, .settings-trigger, #settingsPanel, .hospital-name, .voice-btn, .voice-status, .voice-info { display: none !important; }
-            body { background: white !important; }
-            .token-card { background: white !important; box-shadow: none !important; border: none !important; width: 100% !important; padding: 0 !important; }
-            .title { font-size: 22pt !important; border-bottom: 2pt solid #000 !important; }
-            .number { font-size: 120pt !important; margin: 10mm 0 !important; }
-            .time-stamp { font-size: 18pt !important; border-top: 2pt solid #000 !important; padding-top: 5mm !important; }
+            .no-print, #blurOverlay, .settings-trigger, .btn-print, .reset-trigger, #settingsPanel, .hospital-name, .voice-control { display: none !important; }
+            body { background: white !important; display: flex !important; justify-content: center !important; align-items: flex-start !important; }
+            .token-card { background: white !important; box-shadow: none !important; border: none !important; width: 100% !important; padding: 5mm !important; margin: 0 !important; }
+            .title { font-size: 20pt !important; border-bottom: 2.5pt solid #000 !important; padding-top: 5mm !important; }
+            .number { font-size: 110pt !important; margin: 8mm 0 !important; line-height: 1 !important; font-weight: 900 !important; }
+            .time-stamp { font-size: 16pt !important; border-top: 2.5pt solid #000 !important; padding-top: 5mm !important; color: #000 !important; font-weight: 800 !important; }
         }
     </style>
 </head>
@@ -81,55 +86,115 @@
 
 <div id="settingsPanel" class="no-print">
     <div id="loginStep">
-        <h3>Admin Access</h3>
-        <input type="password" id="adminPass" class="input-box" placeholder="Enter Password">
+        <h3>Admin Login</h3>
+        <input type="password" id="adminPass" class="input-box" placeholder="Password">
         <button class="save-btn" onclick="checkPass()">Login</button>
+        <button class="save-btn" style="background:#666; margin-top:5px;" onclick="closeSettings()">Close</button>
     </div>
     <div id="configStep" style="display:none;">
-        <button class="save-btn" style="background:#28a745; margin-bottom: 10px;" onclick="exportCSV()">Download CSV Report</button>
-        <button class="save-btn" style="background:#dc3545;" onclick="resetCounter()">Reset Counter to 01</button>
-        <button class="save-btn" style="background:#666; margin-top: 20px;" onclick="closeSettings()">Close</button>
+        <h3>Configuration</h3>
+        <div class="report-section"><strong>Monthly Total: </strong> <span id="monthlyTotal">0</span></div>
+        <div class="report-section">
+            <strong>Download CSV Report</strong>
+            <input type="date" id="startDate" class="input-box">
+            <input type="date" id="endDate" class="input-box">
+            <button class="save-btn" style="background:#28a745;" onclick="exportCSV()">Download CSV</button>
+        </div>
+        <div class="report-section">
+            <label>Change Background Image:</label>
+            <input type="file" id="bgInput" class="input-box" accept="image/*" onchange="uploadBg(this)">
+        </div>
+        <button class="save-btn" style="margin-top:20px;" onclick="closeSettings()">Close</button>
     </div>
 </div>
+
+<div class="reset-trigger no-print" onclick="resetCounter()">Reset Token Count</div>
 
 <div class="token-card">
     <div class="hospital-name">Ninewells Hospital</div>
     <div class="title">OPD Token Number</div>
     <div class="number" id="tokenVal" contenteditable="true" onblur="manualUpdate()">01</div>
     <div class="time-stamp" id="currTime">--</div>
-    
-    <button class="btn-print no-print" onclick="issueToken()">🖨️ Print Token</button>
-    
-    <div class="no-print" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 20px;">
-        <button id="voiceBtn" class="voice-btn" onclick="toggleVoice()">🎤 Activate Voice AI</button>
-        <div id="voiceStatus" class="voice-status">Voice: Deactivated</div>
-        <div class="voice-info" style="font-size: 0.75rem; color: #777; margin-top: 8px;">
-            Commands: <b>"Print"</b> | <b>"Start from [Number]"</b> | <b>"Reset"</b>
-        </div>
+    <button class="btn-print no-print" onclick="issueToken()">Print</button>
+
+    <div class="voice-control no-print">
+        <button class="v-btn" id="vBtn" onclick="toggleVoice()">🎤 Start Voice AI</button>
+        <div class="v-status" id="vStatus">Voice: OFF</div>
     </div>
 </div>
 
 <script>
     let count = 1;
+    const correctPass = "1234";
     let recognition;
     let isListening = false;
-    let awaitingResetConfirm = false;
 
     function initApp() {
         const savedCount = localStorage.getItem('tokenCount');
         if (savedCount) {
             count = parseInt(savedCount);
-            updateUI();
+            document.getElementById('tokenVal').innerText = count.toString().padStart(2, '0');
+        }
+        const savedBg = localStorage.getItem('bgImage');
+        if(savedBg) {
+            document.body.style.backgroundImage = `url('${savedBg}')`;
+            document.getElementById('blurOverlay').style.display = 'block';
         }
         updateTime();
         setInterval(updateTime, 1000);
-        
-        // Browser eka full screen kireema user interact unama
-        document.body.onclick = () => {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+        setupVoice();
+    }
+
+    // Voice Engine Setup
+    function setupVoice() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            document.getElementById('vStatus').innerText = "Voice not supported in this browser.";
+            return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+
+        recognition.onresult = (event) => {
+            const result = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
+            document.getElementById('vStatus').innerText = "Heard: " + result;
+
+            if (result.includes("print")) {
+                issueToken();
+            } else if (result.includes("reset")) {
+                resetCounter();
+            }
         };
-        
-        setupAI();
+
+        recognition.onerror = (e) => {
+            console.error("Voice Error: ", e.error);
+            if (e.error === 'not-allowed') {
+                document.getElementById('vStatus').innerText = "Check Mic Permissions!";
+            }
+        };
+
+        recognition.onend = () => { if (isListening) recognition.start(); };
+    }
+
+    function toggleVoice() {
+        if (!isListening) {
+            try {
+                recognition.start();
+                isListening = true;
+                document.getElementById('vBtn').innerText = "🛑 Stop Voice AI";
+                document.getElementById('vBtn').classList.add('active');
+                document.getElementById('vStatus').innerText = "Listening...";
+            } catch (e) { console.error(e); }
+        } else {
+            recognition.stop();
+            isListening = false;
+            document.getElementById('vBtn').innerText = "🎤 Start Voice AI";
+            document.getElementById('vBtn').classList.remove('active');
+            document.getElementById('vStatus').innerText = "Voice: OFF";
+        }
     }
 
     function updateTime() {
@@ -139,102 +204,103 @@
         });
     }
 
-    function setupAI() {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            document.getElementById('voiceStatus').innerText = "Browser not supported.";
-            return;
-        }
-
-        recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = false;
-        recognition.lang = 'en-US';
-
-        recognition.onresult = (event) => {
-            const result = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
-            document.getElementById('voiceStatus').innerText = "Heard: " + result;
-
-            if (awaitingResetConfirm) {
-                if (result.match(/yes|ok|confirm/)) { executeReset(); }
-                else if (result.match(/no|cancel/)) { 
-                    awaitingResetConfirm = false; 
-                    speak("Reset cancelled."); 
-                    document.getElementById('voiceStatus').innerText = "Ready";
-                }
-                return;
-            }
-
-            if (result.includes("print")) {
-                issueToken();
-            } else if (result.includes("start from")) {
-                const num = result.match(/\d+/);
-                if (num) {
-                    count = parseInt(num[0]);
-                    saveAndRefresh();
-                    speak("Started from " + count);
-                }
-            } else if (result.includes("reset")) {
-                awaitingResetConfirm = true;
-                speak("Are you sure you want to reset?");
-                document.getElementById('voiceStatus').innerText = "Confirm with 'Yes' or 'No'";
-            }
-        };
-
-        recognition.onend = () => { if (isListening) recognition.start(); };
-        recognition.onerror = (e) => { console.error(e); };
-    }
-
-    function toggleVoice() {
-        if (!isListening) {
-            recognition.start();
-            isListening = true;
-            document.getElementById('voiceBtn').innerText = "🛑 Stop Voice AI";
-            document.getElementById('voiceBtn').classList.add('active');
-            document.getElementById('voiceStatus').innerText = "Listening...";
-            speak("Voice control activated.");
-        } else {
-            recognition.stop();
-            isListening = false;
-            document.getElementById('voiceBtn').innerText = "🎤 Activate Voice AI";
-            document.getElementById('voiceBtn').classList.remove('active');
-            document.getElementById('voiceStatus').innerText = "Voice: Deactivated";
-        }
-    }
-
-    function speak(text) {
-        const msg = new SpeechSynthesisUtterance(text);
-        window.speechSynthesis.speak(msg);
-    }
-
     function issueToken() {
-        window.print(); // Silent printing filter eken copy 1
+        let currentTokenNum = document.getElementById('tokenVal').innerText;
+        saveLog(currentTokenNum);
+        window.print();
         setTimeout(() => { 
-            window.print(); // Copy 2
+            window.print(); 
             count++;
-            saveAndRefresh();
+            localStorage.setItem('tokenCount', count);
+            document.getElementById('tokenVal').innerText = count.toString().padStart(2, '0');
         }, 1200); 
     }
 
-    function saveAndRefresh() {
-        localStorage.setItem('tokenCount', count);
-        updateUI();
+    function saveLog(tokenNum) {
+        let logs = JSON.parse(localStorage.getItem('tokenLogs') || "[]");
+        logs.push({ token: tokenNum, timestamp: new Date().toISOString() });
+        localStorage.setItem('tokenLogs', JSON.stringify(logs));
     }
 
-    function executeReset() {
-        count = 1;
-        saveAndRefresh();
-        awaitingResetConfirm = false;
-        speak("Counter reset to one.");
-        document.getElementById('voiceStatus').innerText = "Reset Done";
+    function manualUpdate() {
+        let val = parseInt(document.getElementById('tokenVal').innerText);
+        if(!isNaN(val)) {
+            count = val;
+            localStorage.setItem('tokenCount', count);
+            document.getElementById('tokenVal').innerText = count.toString().padStart(2, '0');
+        }
     }
 
-    function updateUI() { document.getElementById('tokenVal').innerText = count.toString().padStart(2, '0'); }
-    function manualUpdate() { let v = parseInt(document.getElementById('tokenVal').innerText); if(!isNaN(v)) { count = v; localStorage.setItem('tokenCount', v); } }
-    function openSettings() { document.getElementById('settingsPanel').style.display = 'block'; document.getElementById('blurOverlay').style.display = 'block'; }
-    function closeSettings() { document.getElementById('settingsPanel').style.display = 'none'; document.getElementById('blurOverlay').style.display = 'none'; }
-    function checkPass() { if(document.getElementById('adminPass').value === "1234") { document.getElementById('loginStep').style.display = 'none'; document.getElementById('configStep').style.display = 'block'; } }
-    function resetCounter() { if(confirm("Reset?")) executeReset(); }
+    function openSettings() {
+        document.getElementById('settingsPanel').style.display = 'block';
+        document.getElementById('blurOverlay').style.display = 'block';
+    }
+
+    function checkPass() {
+        if(document.getElementById('adminPass').value === correctPass) {
+            document.getElementById('loginStep').style.display = 'none';
+            document.getElementById('configStep').style.display = 'block';
+            updateMonthlyCount();
+        } else { alert("Wrong Password!"); }
+    }
+
+    function updateMonthlyCount() {
+        let logs = JSON.parse(localStorage.getItem('tokenLogs') || "[]");
+        let m = new Date().getMonth(), y = new Date().getFullYear();
+        let mCount = logs.filter(l => {
+            let d = new Date(l.timestamp);
+            return d.getMonth() === m && d.getFullYear() === y;
+        }).length;
+        document.getElementById('monthlyTotal').innerText = mCount;
+    }
+
+    function resetCounter() {
+        if (confirm("Are you sure you want to reset the token count to 01?")) {
+            count = 1;
+            localStorage.setItem('tokenCount', 1);
+            document.getElementById('tokenVal').innerText = "01";
+        }
+    }
+
+    function exportCSV() {
+        let start = document.getElementById('startDate').value;
+        let end = document.getElementById('endDate').value;
+        if(!start || !end) return;
+        let logs = JSON.parse(localStorage.getItem('tokenLogs') || "[]");
+        let filtered = logs.filter(l => {
+            let d = l.timestamp.split('T')[0];
+            return d >= start && d <= end;
+        });
+        let csv = "Token Number,Date,Time\n";
+        filtered.forEach(l => {
+            let d = new Date(l.timestamp);
+            csv += `${l.token},${d.toLocaleDateString()},${d.toLocaleTimeString()}\n`;
+        });
+        let blob = new Blob([csv], { type: 'text/csv' });
+        let url = window.URL.createObjectURL(blob);
+        let a = document.createElement('a');
+        a.href = url; a.download = `Report.csv`; a.click();
+    }
+
+    function uploadBg(input) {
+        if (input.files && input.files[0]) {
+            let reader = new FileReader();
+            reader.onload = (e) => {
+                localStorage.setItem('bgImage', e.target.result);
+                document.body.style.backgroundImage = `url('${e.target.result}')`;
+                document.getElementById('blurOverlay').style.display = 'block';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function closeSettings() {
+        document.getElementById('settingsPanel').style.display = 'none';
+        document.getElementById('adminPass').value = "";
+        document.getElementById('loginStep').style.display = 'block';
+        document.getElementById('configStep').style.display = 'none';
+        if(!localStorage.getItem('bgImage')) document.getElementById('blurOverlay').style.display = 'none';
+    }
 </script>
 </body>
 </html>
